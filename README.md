@@ -1,7 +1,7 @@
 Here's a workaround for those of us publishing [LlamaSharp.Backend.*](https://scisharp.github.io/LLamaSharp/0.12.0/QuickStart/) packages and run into the following errors:
 
 
-### Conflict NETSDK1152
+### Conflict NETSDK1152 publishing LlamaSharp
 
 Microsoft.NET.ConflictResolution.targets: error NETSDK1152. Found multiple publish output files with the same relative path:
 
@@ -86,7 +86,7 @@ Let's ignore the errors on duplicate DLLs in packages. Then remove the single du
 </Project>
 ```
 
-See changes in commit a47684f of example [Example2.csproj](Example2_PublishingSucceeds/Example2.csproj).
+See changes in [commit a47684f](https://github.com/plastic-plant/llamasharp-issue-382/commit/a47684f07928003ec366dc1a5f3a4c933cce2948) of [Example2.csproj](Example2_PublishingSucceeds/Example2.csproj).
 
 ```shell
 Example 2.
