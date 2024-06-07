@@ -5,6 +5,17 @@
         <TargetFramework>net8.0</TargetFramework>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <ImplicitUsings>enable</ImplicitUsings>
+
+        <!-- Workaround LlamaSharp issue #382.
+      
+         Ignore publishing errors on extracting duplicates in LLamaSharp.Backend.* packages.
+         Result is on publishing a build the variants for llama.dll and llava_shared.dll are
+         overwriting in root folder. We'll remove these and copy the runtime folders instead.
+         LlamaSharp.dll picks up the correct files from runtime folders.
+         
+        -->
+        <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+        <RestorePackagesPath>bin\$(Configuration)\.nuget\packages</RestorePackagesPath>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,9 +23,37 @@
         <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.12.0" />
         <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.12.0" />
         <PackageReference Include="LLamaSharp.Backend.Cuda12" Version="0.12.0" />
-        <PackageReference Include="LLamaSharp.Backend.MacMetal" Version="0.7.0" />
         <PackageReference Include="LLamaSharp.Backend.OpenCL" Version="0.12.0" />
     </ItemGroup>
+
+    <!-- Workaround LlamaSharp issue #382. -->
+
+    <ItemGroup>
+        <LlamaSharpBackendCpu Include="$(RestorePackagesPath)\llamasharp.backend.cpu\0.12.0\runtimes\**\*.*" />
+        <LlamaSharpBackendCuda11 Include="$(RestorePackagesPath)\llamasharp.backend.cuda11\0.12.0\runtimes\**\*.*" />
+        <LlamaSharpBackendCuda12 Include="$(RestorePackagesPath)\llamasharp.backend.cuda12\0.12.0\runtimes\**\*.*" />
+        <LlamaSharpBackendOpenCL Include="$(RestorePackagesPath)\llamasharp.backend.opencl\0.12.0\runtimes\**\*.*" />
+    </ItemGroup>
+
+    <Target Name="CopyRuntimesFolderOnBuild" AfterTargets="Build">
+        <Delete Files="$(OutDir)llama.dll" />
+        <Delete Files="$(OutDir)llava_shared.dll" />
+        <Copy SourceFiles="@(LlamaSharpBackendCpu)" DestinationFolder="$(OutputPath)\runtimes\%(RecursiveDir)" />
+        <Copy SourceFiles="@(LlamaSharpBackendCuda11)" DestinationFolder="$(OutputPath)\runtimes\%(RecursiveDir)" />
+        <Copy SourceFiles="@(LlamaSharpBackendCuda12)" DestinationFolder="$(OutputPath)\runtimes\%(RecursiveDir)" />
+        <Copy SourceFiles="@(LlamaSharpBackendOpenCL)" DestinationFolder="$(OutputPath)\runtimes\%(RecursiveDir)" />
+    </Target>
+
+    <Target Name="CopyRuntimesFolderOnPublish" AfterTargets="Publish">
+        <Delete Files="$(PublishDir)llama.dll" />
+        <Delete Files="$(PublishDir)llava_shared.dll" />
+        <Copy SourceFiles="@(LlamaSharpBackendCpu)" DestinationFolder="$(PublishDir)\runtimes\%(RecursiveDir)" />
+        <Copy SourceFiles="@(LlamaSharpBackendCuda11)" DestinationFolder="$(PublishDir)\runtimes\%(RecursiveDir)" />
+        <Copy SourceFiles="@(LlamaSharpBackendCuda12)" DestinationFolder="$(PublishDir)\runtimes\%(RecursiveDir)" />
+        <Copy SourceFiles="@(LlamaSharpBackendOpenCL)" DestinationFolder="$(PublishDir)\runtimes\%(RecursiveDir)" />
+    </Target>
+
+    <!-- /Workaround -->
 
     <ItemGroup>
         <Content Include="..\Models\all-minilm-sentence-transformer.gguf">
